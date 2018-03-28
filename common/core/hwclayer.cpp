@@ -119,13 +119,16 @@ void HwcLayer::SetSurfaceDamage(const HwcRegion& surface_damage) {
     }
   } else if (rects == 0) {
     rect = display_frame_;
-    layer_cache_ |= kForceClear;
   }
 
   if ((surface_damage_.left == rect.left) &&
       (surface_damage_.top == rect.top) &&
       (surface_damage_.right == rect.right) &&
       (surface_damage_.bottom == rect.bottom)) {
+    if (display_frame_width_ < DAMAGE_THRESHOLD &&
+        display_frame_height_ < DAMAGE_THRESHOLD) {
+      layer_cache_ |= kForceClear;
+    }
     return;
   }
 
@@ -133,6 +136,7 @@ void HwcLayer::SetSurfaceDamage(const HwcRegion& surface_damage) {
   if (display_frame_width_ < DAMAGE_THRESHOLD &&
       display_frame_height_ < DAMAGE_THRESHOLD) {
     UpdateRenderingDamage(display_frame_, display_frame_, true);
+    layer_cache_ |= kForceClear;
   }
 
   UpdateRenderingDamage(surface_damage_, rect, false);
@@ -218,6 +222,7 @@ void HwcLayer::Validate() {
         (display_frame_width_ < DAMAGE_THRESHOLD &&
          display_frame_height_ < DAMAGE_THRESHOLD)) {
       current_rendering_damage_ = display_frame_;
+      layer_cache_ |= kForceClear;
     } else {
       current_rendering_damage_ = surface_damage_;
     }
